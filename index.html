@@ -10,20 +10,30 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.7.3/d3.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.7.1/d3-tip.min.js"></script>
     <script src="https://unpkg.com/d3-simple-slider@0.2.1/build/d3-simple-slider.js"></script>
+    <!-- <script src="https://code.jquery.com/jquery-1.10.2.js"></script> -->
 </head>
 <body>
     <div class="container">
         <div class="row"></div>
             <div class="col-sm-2">
-                <p id="value"></p>
+                <!-- <p id="value"></p> -->
+                <h5>Choose Model Year</h5>
+                <select id="inds">                    
+                    <option value="2014">2014</option>
+                    <option value="2015">2015</option>
+                    <option value="2016">2016</option>
+                    <option value="2017">2017</option>
+                    <option value="2018" selected="selected">2018</option>
+                </select>
             </div>
             <div class="col-sm">
                 <div id="slider"></div>
             </div>
         </div>
         <div class="chart">
-
-
+        </div>
+        <div class="line_chart">
+            
         </div>
     </div>
     <script type="text/javascript" src="assets/js/app.js"></script>    
