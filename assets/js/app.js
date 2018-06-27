@@ -81,10 +81,95 @@ d3.csv("assets/data/car.csv", function(err, carData) {
   .enter()
   .append("image")
   .attr("xlink:href", d => d.src)
+  .attr("alt", d=>d.car)
   .attr("x", d => xLinearScale(d.car)+15)
   .attr("y", d => yLinearScale(d.price2018))
   .attr("width", "30")
-  .attr("height", "30");
+  .attr("height", "30")
+  .style("cursor", "pointer")
+  .on("click", function() {
+    console.log(this.getAttribute("alt"));
+    var modelName = this.getAttribute("alt")
+    var x = d3.scaleBand()
+    .rangeRound([0, width])
+    .paddingInner(0.05)
+    .align(0.1);
+
+    var y = d3.scaleLinear()
+        .rangeRound([height, 0]);
+
+    var z = d3.scaleOrdinal()
+        .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+
+    d3.csv(`assets/data/${modelName}.csv`, function(d, i, columns) {
+      for (i = 1, t = 0; i < columns.length; ++i) t += d[columns[i]] = +d[columns[i]];
+      d.total = t;
+      return d;
+    }, function(error, data) {
+      if (error) throw error;
+
+      var keys = data.columns.slice(1);
+
+      // data.sort(function(a, b) { return b.total - a.total; });
+      x.domain(data.map(function(d) { return d.Year; }));
+      y.domain([0, d3.max(data, function(d) { return d.total; })]).nice();
+      z.domain(keys);
+
+      lineChartGroup.append("g")
+        .selectAll("g")
+        .data(d3.stack().keys(keys)(data))
+        .enter().append("g")
+          .attr("fill", function(d) { return z(d.key); })
+        .selectAll("rect")
+        .data(function(d) { return d; })
+        .enter().append("rect")
+          .attr("x", function(d) { return x(d.data.Year); })
+          .attr("y", function(d) { return y(d[1]); })
+          .transition()
+          .delay((d,i)=> i * 50)
+          .attr("height", function(d) { return y(d[0]) - y(d[1]); })
+          .attr("width", x.bandwidth());
+
+      lineChartGroup.append("g")
+          .attr("class", "axis")
+          .attr("transform", "translate(0," + height + ")")
+          .call(d3.axisBottom(x));
+
+      lineChartGroup.append("g")
+          .attr("class", "axis")
+          .call(d3.axisLeft(y).ticks(null, "s"))
+        .append("text")
+          .attr("x", 2)
+          .attr("y", y(y.ticks().pop()) + 0.5)
+          .attr("dy", "0.32em")
+          .attr("fill", "#000")
+          .attr("font-weight", "bold")
+          .attr("text-anchor", "start")
+          .text("True Cost to Own");
+
+        var legend = lineChartGroup.append("g")
+          .attr("font-family", "sans-serif")
+          .attr("font-size", 10)
+          .attr("text-anchor", "end")
+        .selectAll("g")
+        .data(keys.slice().reverse())
+        .enter().append("g")
+          .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+    
+      legend.append("rect")
+          .attr("x", width - 19)
+          .attr("width", 19)
+          .attr("height", 19)
+          .attr("fill", z);
+    
+      legend.append("text")
+          .attr("x", width - 24)
+          .attr("y", 9.5)
+          .attr("dy", "0.32em")
+          .text(function(d) { return d; });
+    })
+ 
+  });
 
   // time slider
   var data = d3.range(0, 5).map(function (d) { return new Date(2018 + d, 5, 3); });
@@ -147,24 +232,5 @@ d3.csv("assets/data/car.csv", function(err, carData) {
 
       g.call(slider);    
     });
-
-
-    // line chart
-    var xTimeScale = d3.scaleTime()
-    .domain([new Date(2018,0,1), new Date(2022,0,1)])
-    .range([0, width]);
-    // xTimeScale.ticks(d3.timeYear.every(1));
-
-    var lineBottomAxis = d3.axisBottom(xTimeScale);
-    lineBottomAxis.tickFormat(d3.timeFormat("%Y"));
-
-    lineChartGroup.append("g")
-    .attr("transform", `translate(0, ${height})`)
-    .call(lineBottomAxis.ticks(d3.timeYear));
-
-    // .attr("transform", "rotate(45)")
-    // .style("text-anchor", "start");
-
-    lineChartGroup.append("g")
-      .call(leftAxis);
+   
 });
