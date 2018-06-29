@@ -14,7 +14,8 @@
 </head>
 <body>
     <div class="container">
-        <div class="row"></div>
+
+        <div class="row">
             <div class="col-sm-2">
                 <!-- <p id="value"></p> -->
                 <h5>Choose Model Year</h5>
@@ -26,15 +27,28 @@
                     <option value="2018" selected="selected">2018</option>
                 </select>
             </div>
-            <div class="col-sm">
+            <div class="col-sm-10">
                 <div id="slider"></div>
             </div>
         </div>
-        <div class="chart">
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="chart">
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="line_chart">
+                </div>
+            </div>
         </div>
-        <div class="line_chart">
-
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="bar_chart">
+                </div>
+            </div>
+            
         </div>
+        
     </div>
     <script type="text/javascript" src="assets/js/app.js"></script>    
 </body>
