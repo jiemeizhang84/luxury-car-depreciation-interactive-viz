@@ -11,7 +11,8 @@ var margin = {
 var width = svgWidth - margin.left - margin.right;
 var height = svgHeight - margin.top - margin.bottom;
 
-renderLineChart();
+// initiate with 2018 car data
+renderLineChart(2018);
 renderPercentageChart();
 
 
@@ -25,24 +26,20 @@ function renderPercentageChart () {
   var chartGroup = svg.append("g")
     .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-  d3.csv("assets/data/car.csv", function(err, carData) {
+  d3.csv("assets/data/2018car.csv", function(err, carData) {
     if (err) throw err;
     console.log(carData);
+    var keys = d3.keys(carData[0]);
+    console.log(keys);
+    keys = keys.slice(1,keys.length-1);
+    console.log(keys);
   
     //  Parse Data/Cast as numbers
     carData.forEach(function(data) {
-      data.price2014 = +data.price2014;
-      data.price2015 = +data.price2015;
-      data.price2016 = +data.price2016;
-      data.price2017 = +data.price2017;
-      data.price2018 = +data.price2018;
-      data.price2019 = +data.price2019;
-      data.price2020 = +data.price2020;
-      data.price2021 = +data.price2021;
-      data.price2022 = +data.price2022;
+      for (var i=0; i<keys.length; i++) {
+        data[keys[i]] = + data[keys[i]];
+      }
     });
-    console.log(carData.car);
-    console.log(carData.price2018);
   
     //  Create scale functions
     var xLinearScale = d3.scaleBand()
@@ -50,7 +47,7 @@ function renderPercentageChart () {
       .range([0, width]);
   
     var yLinearScale = d3.scaleLinear()
-      .domain([0, d3.max(carData, d => d.price2018)])
+      .domain([0, 70000])
       .range([height, 0]);
   
     // Create axis functions
@@ -139,6 +136,8 @@ function renderPercentageChart () {
             var carYear = d3.timeFormat('%Y')(slider.value());
             console.log(carYear);
             d3.selectAll(".carIcone").transition().duration(1000).attr("y", d => yLinearScale(d["price"+carYear]));
+            d3.selectAll(".carIconeLine").style("visibility", "hidden");
+            d3.selectAll(".Y"+carYear).style("visibility", "visible");
             
         });
   
@@ -153,7 +152,10 @@ function renderPercentageChart () {
         .append("g")
         .attr("transform", "translate(30,30)");
   
-        g.call(slider);    
+        g.call(slider); 
+        
+        d3.select(".line_chart").selectAll("*").remove();
+        renderLineChart(modelYear);
       });
      
   });
@@ -251,7 +253,7 @@ function stackedBar(modelName) {
 }
 
 // line chart function
-function renderLineChart() {
+function renderLineChart(modelYear) {
   var lineSvg = d3.select(".line_chart")
   .append("svg")
   .attr("width", svgWidth)
@@ -262,18 +264,21 @@ function renderLineChart() {
 
   var parseTime = d3.timeParse("%Y");
 
-  d3.csv("assets/data/car_line.csv", function(error, carData) {
+  d3.csv(`assets/data/${modelYear}car_line.csv`, function(error, carData) {
 
     if (error) throw error;
 
-    console.log(carData);
-    console.log(carData[0]);
-
+    var keys = d3.keys(carData[0]);
+    console.log(keys);
+    keys = keys.slice(1);
+    console.log(keys);
+  
+    //  Parse Data/Cast as numbers
     carData.forEach(function(data) {
       data.Year = parseTime(data.Year);
-      data.LexusRX350 = +data.LexusRX350;
-      data.MBC = +data.MBC;
-      data.BMW3 = +data.BMW3;
+      for (var i=0; i<keys.length; i++) {
+        data[keys[i]] = + data[keys[i]];
+      }
     });
   
     var xTimeScale = d3.scaleTime()
@@ -281,46 +286,40 @@ function renderLineChart() {
       .range([0, width]);
 
     var yLinearScale = d3.scaleLinear()
-      .domain([0, d3.max(carData, data => data.BMW3)])
+      // .domain([0, d3.max(carData, data => data.BMWX3)])
+      .domain([0,70000])
       .range([height, 0]);
 
     var bottomAxis = d3.axisBottom(xTimeScale);
     var leftAxis = d3.axisLeft(yLinearScale);
-      
-    var drawLine = d3.line()
-      .x(data => xTimeScale(data.Year))
-      .y(data => yLinearScale(data.MBC));
-    var drawLine1 = d3.line()
-      .x(data => xTimeScale(data.Year))
-      .y(data => yLinearScale(data.LexusRX350));
-    var drawLine2 = d3.line()
-      .x(data => xTimeScale(data.Year))
-      .y(data => yLinearScale(data.BMW3));
 
-    // Append an SVG path and plot its points using the line function
-    lineChartGroup.append("path")
+    var lineColors = ["#784a1c", "#007070", "#c70076", "#8f62cc", "#45bdbd", "#e996c8"];
+
+    for (var i=0; i<keys.length; i++) {
+      var drawLine = d3.line()
+      .x(data => xTimeScale(data.Year))
+      .y(data => yLinearScale(data[keys[i]]));
+
+      lineChartGroup.append("path")
       .attr("d", drawLine(carData))
       .attr("fill", "none")
-      .attr("stroke", "#5aa335")
+      .attr("stroke", lineColors[i])
       .attr("stroke-linejoin", "round")
       .attr("stroke-linecap", "round")
       .attr("stroke-width", 4);
 
-    lineChartGroup.append("path")
-      .attr("d", drawLine1(carData))
-      .attr("fill", "none")
-      .attr("stroke", "#6ec6e2")
-      .attr("stroke-linejoin", "round")
-      .attr("stroke-linecap", "round")
-      .attr("stroke-width", 4);
-    
-    lineChartGroup.append("path")
-      .attr("d", drawLine2(carData))
-      .attr("fill", "none")
-      .attr("stroke", "#eae200")
-      .attr("stroke-linejoin", "round")
-      .attr("stroke-linecap", "round")
-      .attr("stroke-width", 4);
+      lineChartGroup.selectAll(".brands")
+        .data(carData)
+        .enter()
+        .append("image")
+        .attr("class",data => "carIconeLine Y"+ data.Year.getFullYear() )
+        .attr("xlink:href", `assets/data/${keys[i]}.png`)
+        .attr("x", data => xTimeScale(data.Year)-15)
+        .attr("y", data => yLinearScale(data[keys[i]])-15)
+        .attr("width", "30")
+        .attr("height", "30")
+        .style("visibility", "hidden");
+    }
 
     lineChartGroup.selectAll("path").call(transition);
 
@@ -333,43 +332,8 @@ function renderLineChart() {
       .attr("transform", `translate(0, ${height})`)
       .call(bottomAxis);
 
-    lineChartGroup.selectAll(".brands")
-    .data(carData)
-    .enter()
-    .append("image")
-    .attr("class",data => "carIconeLine Y"+ data.Year.getFullYear() )
-    .attr("xlink:href", "assets/data/car.svg")
-    .attr("x", data => xTimeScale(data.Year)-15)
-    .attr("y", data => yLinearScale(data.BMW3)-15)
-    .attr("width", "30")
-    .attr("height", "30")
-    .style("visibility", "hidden");
 
-    lineChartGroup.selectAll(".brands")
-    .data(carData)
-    .enter()
-    .append("image")
-    .attr("class",data => "carIconeLine Y"+ data.Year.getFullYear() )
-    .attr("xlink:href", "assets/data/car.svg")
-    .attr("x", data => xTimeScale(data.Year)-15)
-    .attr("y", data => yLinearScale(data.MBC)-15)
-    .attr("width", "30")
-    .attr("height", "30")
-    .style("visibility", "hidden");
-
-    lineChartGroup.selectAll(".brands")
-    .data(carData)
-    .enter()
-    .append("image")
-    .attr("class",data => "carIconeLine Y"+ data.Year.getFullYear() )
-    .attr("xlink:href", "assets/data/car.svg")
-    .attr("x", data => xTimeScale(data.Year)-15)
-    .attr("y", data => yLinearScale(data.LexusRX350)-15)
-    .attr("width", "30")
-    .attr("height", "30")
-    .style("visibility", "hidden");
-
-    d3.selectAll(".Y2018")
+    d3.selectAll(`.Y${modelYear}`)
     .style("visibility", "visible");
 
     function transition(path) {
