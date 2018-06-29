@@ -1,5 +1,5 @@
 var svgWidth = 650;
-var svgHeight = 300;
+var svgHeight = 400;
 
 var margin = {
   top: 20,
@@ -13,11 +13,10 @@ var height = svgHeight - margin.top - margin.bottom;
 
 // initiate with 2018 car data
 renderLineChart(2018);
-renderPercentageChart();
+renderPercentageChart(2018);
 
 
-
-function renderPercentageChart () {
+function renderPercentageChart(modelYear) {
   var svg = d3.select(".chart")
   .append("svg")
   .attr("width", svgWidth)
@@ -26,7 +25,7 @@ function renderPercentageChart () {
   var chartGroup = svg.append("g")
     .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-  d3.csv("assets/data/2018car.csv", function(err, carData) {
+  d3.csv(`assets/data/${modelYear}car.csv`, function(err, carData) {
     if (err) throw err;
     console.log(carData);
     var keys = d3.keys(carData[0]);
@@ -87,33 +86,8 @@ function renderPercentageChart () {
   
       stackedBar(modelName);
     });
-  
-    // time slider
-    var data = d3.range(0, 6).map(function (d) { return new Date(2018 + d, 5, 3); });
-    console.log(data);
-    var slider = d3.sliderHorizontal()
-    .min(d3.min(data))
-    .max(d3.max(data))
-    .step(1000 * 60 * 60 * 24 * 365)
-    .width(400)
-    .tickFormat(d3.timeFormat('%Y'))
-    .tickValues(data)
-    .on('onchange', val => {
-        d3.select("p#value").text(d3.timeFormat('%Y')(val));
-        var carYear = d3.timeFormat('%Y')(slider.value());
-        console.log(carYear);
-        d3.selectAll(".carIcone").transition().duration(1000).attr("y", d => yLinearScale(d["price"+carYear]));
-        d3.selectAll(".carIconeLine").style("visibility", "hidden");
-        d3.selectAll(".Y"+carYear).style("visibility", "visible");
-    });
-  
-    var g = d3.select("div#slider").append("svg")
-    .attr("width", 500)
-    .attr("height", 100)
-    .append("g")
-    .attr("transform", "translate(30,30)");
-  
-    g.call(slider);
+
+    renderTimeSlider(2018,carData,yLinearScale);
   
     // dropdown select model year then update time slider
     d3.select('#inds')
@@ -121,38 +95,10 @@ function renderPercentageChart () {
         var modelYear = d3.select('select').property('value')
         // var modelYear = sect.options[sect.selectedIndex].value;
         console.log(modelYear);
-        var data = d3.range(0, 6).map(function (d) { return new Date(parseInt(modelYear) + d, 5, 3); });
-        console.log(data);
-  
-        var slider = d3.sliderHorizontal()
-        .min(d3.min(data))
-        .max(d3.max(data))
-        .step(1000 * 60 * 60 * 24 * 365)
-        .width(400)
-        .tickFormat(d3.timeFormat('%Y'))
-        .tickValues(data)
-        .on('onchange', val => {
-            // d3.select("p#value").text(d3.timeFormat('%Y')(val));
-            var carYear = d3.timeFormat('%Y')(slider.value());
-            console.log(carYear);
-            d3.selectAll(".carIcone").transition().duration(1000).attr("y", d => yLinearScale(d["price"+carYear]));
-            d3.selectAll(".carIconeLine").style("visibility", "hidden");
-            d3.selectAll(".Y"+carYear).style("visibility", "visible");
-            
-        });
-  
-        d3.selectAll(".carIcone").transition().duration(1000).attr("y", d => yLinearScale(d["price"+modelYear]));
-  
-        // remove previous time slider
-        d3.select("#slider").selectAll("*").remove();
-        // append new time slider
-        var g = d3.select("div#slider").append("svg")
-        .attr("width", 500)
-        .attr("height", 100)
-        .append("g")
-        .attr("transform", "translate(30,30)");
-  
-        g.call(slider); 
+
+        renderTimeSlider(modelYear,carData,yLinearScale);
+        
+        d3.selectAll(".carIcone").data(carData).transition().duration(1000).attr("y", d => yLinearScale(d["price"+modelYear]));
         
         d3.select(".line_chart").selectAll("*").remove();
         renderLineChart(modelYear);
@@ -348,6 +294,40 @@ function renderLineChart(modelYear) {
         return function (t) { return i(t); };
     }
   });
+}
+
+function renderTimeSlider(modelYear,carData,yLinearScale){
+  var data = d3.range(0, 6).map(function (d) { return new Date(parseInt(modelYear) + d, 5, 3); });
+  console.log(data);
+
+  var slider = d3.sliderHorizontal()
+  .min(d3.min(data))
+  .max(d3.max(data))
+  .step(1000 * 60 * 60 * 24 * 365)
+  .width(400)
+  .tickFormat(d3.timeFormat('%Y'))
+  .tickValues(data)
+  .on('onchange', val => {
+      // d3.select("p#value").text(d3.timeFormat('%Y')(val));
+      var carYear = d3.timeFormat('%Y')(slider.value());
+      console.log(carYear);
+      d3.selectAll(".carIcone").data(carData).transition().duration(1000).attr("y", d => yLinearScale(d["price"+carYear]));
+      d3.selectAll(".carIconeLine").style("visibility", "hidden");
+      d3.selectAll(".Y"+carYear).style("visibility", "visible");
+      
+  });
+
+  // remove previous time slider
+  d3.select("#slider").selectAll("*").remove();
+  // append new time slider
+  var g = d3.select("div#slider").append("svg")
+  .attr("width", 500)
+  .attr("height", 100)
+  .append("g")
+  .attr("transform", "translate(30,30)");
+
+  g.call(slider); 
+
 }
 
 
