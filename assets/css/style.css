@@ -1,0 +1,29 @@
+body {
+    
+    background: linear-gradient( #1A237E 230px, #EEEEEE 0%);
+    height: auto;
+}
+
+.car_header {
+    color: #EEEEEE;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+
+}
+
+.car_header1 {
+    color: #F9A825;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+
+}
+
+.line_chart {
+    background-color: white;
+}
+
+.chart {
+    background-color: white;
+}
+
+.bar_chart {
+    background-color: white;
+}

@@ -14,11 +14,15 @@
 </head>
 <body>
     <div class="container">
+        <h1 class="car_header">
+            Luxury SUV Cost Comparison
+        </h1>
+        <h3 class="car_header">Dashboard</h3>
 
         <div class="row">
-            <div class="col-sm-2">
+            <div class="col-md-4">
                 <!-- <p id="value"></p> -->
-                <h5>Choose Model Year</h5>
+                <h5 class="car_header1">Choose Model Year</h5>
                 <select id="inds">                    
                     <option value="2014">2014</option>
                     <option value="2015">2015</option>
@@ -27,22 +31,25 @@
                     <option value="2018" selected="selected">2018</option>
                 </select>
             </div>
-            <div class="col-sm-10">
+            <div class="col-md-8">
+                <h5 class="car_header1">Slide by Year</h5>
                 <div id="slider"></div>
             </div>
         </div>
         <div class="row">
-            <div class="col-sm-6">
+            <div class="col-lg-6">
                 <div class="chart">
                 </div>
             </div>
-            <div class="col-sm-6">
+            <div class="col-lg-6">
                 <div class="line_chart">
                 </div>
             </div>
         </div>
+        <br>
+
         <div class="row">
-            <div class="col-sm-6">
+            <div class="col-lg-6">
                 <div class="bar_chart">
                 </div>
             </div>

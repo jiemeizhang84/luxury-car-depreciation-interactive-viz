@@ -1,11 +1,11 @@
-var svgWidth = 650;
+var svgWidth = 550;
 var svgHeight = 400;
 
 var margin = {
-  top: 20,
+  top: 40,
   right: 40,
   bottom: 60,
-  left: 100
+  left: 50
 };
 
 var width = svgWidth - margin.left - margin.right;
@@ -81,7 +81,16 @@ function renderPercentageChart(modelYear) {
       .style("text-anchor", "start");
   
     chartGroup.append("g")
-      .call(leftAxis);
+      .call(leftAxis)
+      .append("text")
+      .attr("x", 100)
+      .attr("y", -20)
+      .attr("dy", "0.32em")
+      .attr("fill", "#000")
+      .attr("font-weight", "bold")
+      .attr("font-size", 12)
+      .attr("text-anchor", "start")
+      .text(modelYear + " model value depreciation by percentage");
   
      // Create car icone
     var carsGroup = chartGroup.selectAll(".cars")
@@ -100,6 +109,7 @@ function renderPercentageChart(modelYear) {
       console.log(this.getAttribute("alt"));
       var modelName = this.getAttribute("alt")
   
+      d3.select(".bar_chart").selectAll("*").remove();
       stackedBar(modelYear,modelName);
     });
 
@@ -166,12 +176,13 @@ function stackedBar(modelYear,modelName) {
       barChartGroup.append("g")
           .attr("class", "axis")
           .call(d3.axisLeft(y).ticks(null, "s"))
-        .append("text")
-          .attr("x", 2)
-          .attr("y", y(y.ticks().pop()) + 0.5)
+          .append("text")
+          .attr("x", 120)
+          .attr("y", -20)
           .attr("dy", "0.32em")
           .attr("fill", "#000")
           .attr("font-weight", "bold")
+          .attr("font-size", 12)
           .attr("text-anchor", "start")
           .text("True Cost to Own of "+modelName);
 
@@ -271,7 +282,16 @@ function renderLineChart(modelYear) {
 
     lineChartGroup.append("g")
       .classed("axis", true)
-      .call(leftAxis);
+      .call(leftAxis)
+      .append("text")
+          .attr("x", 100)
+          .attr("y", -20)
+          .attr("dy", "0.32em")
+          .attr("fill", "#000")
+          .attr("font-weight", "bold")
+          .attr("font-size", 12)
+          .attr("text-anchor", "start")
+          .text(modelYear + " model value depreciation by US dollar");
 
     lineChartGroup.append("g")
       .classed("axis", true)
