@@ -15,6 +15,22 @@ var height = svgHeight - margin.top - margin.bottom;
 renderLineChart(2018);
 renderPercentageChart(2018);
 
+// dropdown select model year then update all charts
+d3.select('#inds')
+  .on("change", function () {
+    var modelYear = d3.select('select').property('value')
+    // var modelYear = sect.options[sect.selectedIndex].value;
+    console.log(modelYear);
+
+    d3.select(".chart").selectAll("*").remove();
+    renderPercentageChart(modelYear);
+
+    d3.select(".line_chart").selectAll("*").remove();
+    renderLineChart(modelYear);
+
+    d3.select(".bar_chart").selectAll("*").remove();
+  });
+
 
 function renderPercentageChart(modelYear) {
   var svg = d3.select(".chart")
@@ -25,7 +41,7 @@ function renderPercentageChart(modelYear) {
   var chartGroup = svg.append("g")
     .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-  d3.csv(`assets/data/${modelYear}car.csv`, function(err, carData) {
+  d3.csv(`assets/data/car/${modelYear}car.csv`, function(err, carData) {
     if (err) throw err;
     console.log(carData);
     var keys = d3.keys(carData[0]);
@@ -46,7 +62,7 @@ function renderPercentageChart(modelYear) {
       .range([0, width]);
   
     var yLinearScale = d3.scaleLinear()
-      .domain([0, 70000])
+      .domain([0, 1])
       .range([height, 0]);
   
     // Create axis functions
@@ -76,7 +92,7 @@ function renderPercentageChart(modelYear) {
     .attr("xlink:href", d => d.src)
     .attr("alt", d=>d.car)
     .attr("x", d => xLinearScale(d.car)+15)
-    .attr("y", d => yLinearScale(d.price2018))
+    .attr("y", d => yLinearScale(d["price"+modelYear]))
     .attr("width", "30")
     .attr("height", "30")
     .style("cursor", "pointer")
@@ -84,32 +100,16 @@ function renderPercentageChart(modelYear) {
       console.log(this.getAttribute("alt"));
       var modelName = this.getAttribute("alt")
   
-      stackedBar(modelName);
+      stackedBar(modelYear,modelName);
     });
 
-    renderTimeSlider(2018,carData,yLinearScale);
-  
-    // dropdown select model year then update time slider
-    d3.select('#inds')
-      .on("change", function () {
-        var modelYear = d3.select('select').property('value')
-        // var modelYear = sect.options[sect.selectedIndex].value;
-        console.log(modelYear);
-
-        renderTimeSlider(modelYear,carData,yLinearScale);
-        
-        d3.selectAll(".carIcone").data(carData).transition().duration(1000).attr("y", d => yLinearScale(d["price"+modelYear]));
-        
-        d3.select(".line_chart").selectAll("*").remove();
-        renderLineChart(modelYear);
-      });
-     
+    renderTimeSlider(modelYear,carData,yLinearScale);     
   });
 
 }
 
 
-function stackedBar(modelName) {
+function stackedBar(modelYear,modelName) {
   var barSvg = d3.select(".bar_chart")
   .append("svg")
   .attr("width", svgWidth)
@@ -129,7 +129,7 @@ function stackedBar(modelName) {
     var z = d3.scaleOrdinal()
         .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
 
-    d3.csv(`assets/data/${modelName}.csv`, function(d, i, columns) {
+    d3.csv(`assets/data/bar/${modelYear}${modelName}.csv`, function(d, i, columns) {
       for (i = 1, t = 0; i < columns.length; ++i) t += d[columns[i]] = +d[columns[i]];
       d.total = t;
       return d;
@@ -210,7 +210,7 @@ function renderLineChart(modelYear) {
 
   var parseTime = d3.timeParse("%Y");
 
-  d3.csv(`assets/data/${modelYear}car_line.csv`, function(error, carData) {
+  d3.csv(`assets/data/line/${modelYear}car_line.csv`, function(error, carData) {
 
     if (error) throw error;
 
@@ -233,7 +233,7 @@ function renderLineChart(modelYear) {
 
     var yLinearScale = d3.scaleLinear()
       // .domain([0, d3.max(carData, data => data.BMWX3)])
-      .domain([0,70000])
+      .domain([20000,65000])
       .range([height, 0]);
 
     var bottomAxis = d3.axisBottom(xTimeScale);
