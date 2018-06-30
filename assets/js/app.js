@@ -184,7 +184,7 @@ function stackedBar(modelYear,modelName) {
           .attr("font-weight", "bold")
           .attr("font-size", 12)
           .attr("text-anchor", "start")
-          .text("True Cost to Own of "+modelName);
+          .text("True Cost to Own of "+modelYear+" "+modelName);
 
         var legend = barChartGroup.append("g")
           .attr("font-family", "sans-serif")
