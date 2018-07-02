@@ -3,6 +3,7 @@
 // initiate with 2018 car data
 renderLineChart(2018);
 renderPercentageChart(2018);
+renderScatter(2018);
 
 // dropdown select model year then update all charts
 d3.select('#inds')
@@ -18,6 +19,11 @@ d3.select('#inds')
     renderLineChart(modelYear);
 
     d3.select(".bar_chart").selectAll("*").remove();
+
+    d3.select(".scatter_chart").selectAll("*").remove();
+    renderScatter(modelYear);
+
+
   });
 
 
@@ -208,6 +214,7 @@ function stackedBar(modelYear,modelName) {
         .data(d3.stack().keys(keys)(data))
         .enter().append("g")
           .attr("fill", function(d) { return z(d.key); });
+
       var rect = barGroup.selectAll("rect")
         .data(function(d) { return d; })
         .enter().append("rect")
@@ -376,28 +383,6 @@ function renderLineChart(modelYear) {
         .attr("height", "30")
         .style("visibility", "hidden");
 
-      // console.log(keys[i]);
-
-      //   var toolTip = d3.tip()
-      //   .attr("class", "tooltip")
-      //   .offset([80, -60])
-      //   .html(function(d) {
-      //     console.log(d.Year.getFullYear());
-      //     console.log(dthis);
-      //     return (`<strong>${d.Year.getFullYear()}<strong>`);
-      //   });
-  
-      // // Step 2: Create the tooltip in chartGroup.
-      // lineChartGroup.call(toolTip);
-  
-      // // Step 3: Create "mouseover" event listener to display tooltip
-      // brands.on("mouseover", function(d) {
-      //   toolTip.show(d);
-      // })
-      // // Step 4: Create "mouseout" event listener to hide tooltip
-      //   .on("mouseout", function(d) {
-      //     toolTip.hide(d);
-      //   });
     }
 
     lineChartGroup.selectAll("path").call(transition);
@@ -507,6 +492,211 @@ function renderTimeSlider(modelYear,carData,yLinearScale){
 
   g.call(slider); 
 
+}
+
+function renderScatter(modelYear){
+  d3.csv(`assets/data/scatter/${modelYear}_scatter.csv`,function(error,carData){
+    if (error) throw error;
+     console.log(carData);
+
+
+
+  var chartmargin = { top: 80, right:100, bottom: 50, left:50 };
+  chartwidth = 1000 - chartmargin.left - chartmargin.right,
+  chartheight = 480 - chartmargin.top - chartmargin.bottom;
+
+  var tooltip = d3.select(".scatter_chart").append("div")
+      .attr("class", "tooltip")
+      .style("opacity", 0);
+
+  var xCar = "Car Price",
+      yCar = "TCTO",
+      colorCar="car",
+      brand = "Model";
+
+  // var color = d3.scaleOrdinal(d3.schemeCategory10);
+  var color = d3.scaleOrdinal(["#784a1c", "#007070", "#c70076", "#8f62cc", "#45bdbd", "#e996c8","#7fc97f","#beaed4","#fdc086","#FF6D00","#386cb0","#f0027f","#bf5b17"]);
+        
+
+  var tip = d3.tip()
+          .attr("class", "d3-tip")
+          .offset([-10, 0])
+          .html(function(d) {
+          return brand + ": " + d.car + "<br>" + xCar + ": " + d.Hicash + "<br>" + yCar + ": " + d.Hicost;
+          });
+
+  var x = d3.scaleLinear()          
+        .range([0, chartwidth])
+        .nice();
+
+
+  var y = d3.scaleLinear()
+      .range([chartheight, 0]);
+
+  var xAxis = d3.axisBottom(x).ticks(12),
+      yAxis = d3.axisLeft(y).ticks(12 * chartheight / chartwidth);
+
+  var brush = d3.brush().extent([[0, 0], [chartwidth, chartheight]]).on("end", brushended),
+      idleTimeout,
+      idleDelay = 750;
+
+  var svg = d3.select(".scatter_chart").append("svg")
+              .attr("width", chartwidth + chartmargin.left + chartmargin.right)
+              .attr("height", chartheight + chartmargin.top + chartmargin.bottom)
+              .append("g")
+              .attr("transform", "translate(" + chartmargin.left + "," + chartmargin.top + ")");
+            
+  
+
+  var clip = svg.append("defs").append("svg:clipPath")
+      .attr("id", "clip")
+      .append("svg:rect")
+      .attr("width", chartwidth )
+      .attr("height", chartheight )
+      .attr("x", 0) 
+      .attr("y", 0); 
+
+  var xExtent = d3.extent(carData, function (d) { return d.Hicash; });
+  var yExtent = d3.extent(carData, function (d) { return d.Hicost; });
+  x.domain([-1,1]).nice();
+  y.domain([-1,1]).nice();
+
+  var scatter = svg.append("g")
+      .attr("id", "scatterplot")
+      .attr("clip-path", "url(#clip)");
+  scatter.call(tip)
+  var xy= scatter.selectAll(".dot")
+      .data(carData)
+    .enter().append("circle")
+      .attr("class", "dot")
+      .attr("r", 4)
+      .attr("cx", function (d) { return x(d.Hicash); })
+      .attr("cy", function (d) { return y(d.Hicost); })
+      .style("fill", function(d) { return color(d[colorCar]); })
+      .on("mouseover", function(d) {tip.show(d)})
+      .on("mouseout", function(d) {tip.hide(d)});
+
+  // x axis
+  svg.append("g")
+    .attr("class", "x_axis")
+    .attr('id', "axis--x")
+    .attr("transform", "translate(0," + chartheight/2 + ")")
+    .call(xAxis);
+
+  svg.append("text")
+  .style("text-anchor", "end")
+      .attr("x", chartwidth)
+      .attr("y", chartheight - 8)
+  .text("Cash Price");
+
+  var legend= svg.selectAll(".legend")
+          .data(color.domain())
+          .enter().append("g")
+          .classed("legend", true)
+          .attr("transform", function(d, i) { return "translate(0," + i * 30 + ")"; });
+
+      legend.append("circle")
+          .attr("r", 3.5)
+          .attr("cx", chartwidth + 10)
+          .attr("fill", color);
+
+      legend.append("text")
+          .attr("x", chartwidth + 16)
+          .attr("dy", ".35em")
+          .attr("font-family", "sans-serif")
+           .attr("font-size", 9.5)
+          .text(function(d) { return d; });
+  // x axis gridlines
+  function make_x_gridlines() {   
+          return d3.axisBottom(x)
+              .ticks(10)
+  }
+
+  // var xGrid = svg.append("g")
+  //         .attr('class', 'grid')     
+  //         .attr("id", "grid")
+  //         .attr("transform", "translate(0," + chartheight + ")")
+  //         .call(make_x_gridlines()
+  //             .tickSize(-chartheight+10)
+  //             .tickFormat(""));
+  // y axis
+  svg.append("g")
+      .attr("class", "y_axis")
+      .attr('id', "axis--y")
+      .attr("transform", "translate("+chartwidth/2 + ",0)")
+      .call(yAxis);
+
+  svg.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", "1em")
+      .style("text-anchor", "end")
+      .text("TCTO");
+
+  scatter.append("g")
+      .attr("class", "brush")
+      .call(brush)
+      ;
+
+  function brushended() {
+
+      var s = d3.event.selection;
+      if (!s) {
+          if (!idleTimeout) return idleTimeout = setTimeout(idled, idleDelay);
+          svg.select("#axis--x").attr("transform", "translate(0," +chartheight/2 + ")");
+          svg.select("#axis--y").attr("transform", "translate("+chartwidth/2 + ",0)"); 
+          x.domain([-1,1]).nice();
+          y.domain([-1,1]).nice();
+          
+
+      } else {
+          
+          x.domain([s[0][0], s[1][0]].map(x.invert, x));
+          y.domain([s[1][1], s[0][1]].map(y.invert, y));
+          if((s[0][0]>(chartwidth/2)) & (s[0][1]<(chartheight/2))){
+          svg.select("#axis--x").attr("transform", "translate(0," +chartheight + ")");
+          svg.select("#axis--y").attr("transform", "translate("-chartwidth + ",0)");
+          }
+          else if ((s[0][0]>(chartwidth/2)) & (s[0][1]>(chartheight/2))) {
+              svg.select("#axis--x").attr("transform", "translate(0," -chartheight + ")");
+              svg.select("#axis--y").attr("transform", "translate("-chartwidth + ",0)");
+          }
+          else if ((s[0][0]<(chartwidth/2)) & (s[0][1]>(chartheight/2))) {
+              svg.select("#axis--x").attr("transform", "translate(0," -chartheight + ")");
+              svg.select("#axis--y").attr("transform", "translate("+chartwidth + ",0)");
+          }
+          else{
+              svg.select("#axis--x").attr("transform", "translate(0," +chartheight + ")");
+              svg.select("#axis--y").attr("transform", "translate("+chartwidth + ",0)");
+          }
+        
+          scatter.select(".brush").call(brush.move, null);
+      }
+      
+      zoom();
+  }
+
+  function idled() {
+      idleTimeout = null;
+  }
+
+  function zoom() {
+
+      var t = scatter.transition().duration(300);
+      svg.select("#axis--x").transition(t).call(xAxis);
+      svg.select("#axis--y").transition(t).call(yAxis);
+      
+      scatter.selectAll("circle").transition(t)
+      .attr("cx", function (d) { return x(d.Hicash); })
+      .attr("cy", function (d) { return y(d.Hicost); })
+      ;
+      
+      
+
+  }
+
+
+  });
 }
 
 
