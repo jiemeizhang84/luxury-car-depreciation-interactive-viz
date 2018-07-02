@@ -193,6 +193,7 @@ function stackedBar(modelYear,modelName) {
       if (error) throw error;
 
       var keys = data.columns.slice(1);
+      console.log(keys);
 
       // data.sort(function(a, b) { return b.total - a.total; });
       x.domain(data.map(function(d) { return d.Year; }));
@@ -244,13 +245,13 @@ function stackedBar(modelYear,modelName) {
           .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
     
       legend.append("rect")
-          .attr("x", width - 19)
+          .attr("x", width - 19-80)
           .attr("width", 19)
           .attr("height", 19)
           .attr("fill", z);
     
       legend.append("text")
-          .attr("x", width - 24)
+          .attr("x", width - 24-80)
           .attr("y", 9.5)
           .attr("dy", "0.32em")
           .text(function(d) { return d; });
@@ -259,7 +260,7 @@ function stackedBar(modelYear,modelName) {
       .attr("class", "tooltip")
       .offset([10,0])
       .html(function(d) {
-        console.log(d);
+        // console.log(d);
         return (`<strong>$${d[1]-d[0]}<strong>`);
       });
     
@@ -344,7 +345,7 @@ function renderLineChart(modelYear) {
     var bottomAxis = d3.axisBottom(xTimeScale);
     var leftAxis = d3.axisLeft(yLinearScale);
 
-    var lineColors = ["#784a1c", "#007070", "#c70076", "#8f62cc", "#45bdbd", "#e996c8","#784a1c", "#007070", "#c70076", "#8f62cc", "#45bdbd", "#e996c8","#784a1c", "#007070", "#c70076", "#8f62cc", "#45bdbd", "#e996c8"];
+    var lineColors = ["#784a1c", "#007070", "#c70076", "#8f62cc", "#45bdbd", "#e996c8","#7fc97f","#beaed4","#fdc086","#ffff99","#386cb0","#f0027f","#bf5b17"];
 
     for (var i=0; i<keys.length; i++) {
       var drawLine = d3.line()
@@ -358,8 +359,9 @@ function renderLineChart(modelYear) {
       .attr("stroke-linejoin", "round")
       .attr("stroke-linecap", "round")
       .attr("stroke-width", 4);
+      
 
-      lineChartGroup.selectAll(".brands")
+      var brands = lineChartGroup.selectAll(".brands")
         .data(carData)
         .enter()
         .append("image")
@@ -370,6 +372,29 @@ function renderLineChart(modelYear) {
         .attr("width", "30")
         .attr("height", "30")
         .style("visibility", "hidden");
+
+      // console.log(keys[i]);
+
+      //   var toolTip = d3.tip()
+      //   .attr("class", "tooltip")
+      //   .offset([80, -60])
+      //   .html(function(d) {
+      //     console.log(d.Year.getFullYear());
+      //     console.log(dthis);
+      //     return (`<strong>${d.Year.getFullYear()}<strong>`);
+      //   });
+  
+      // // Step 2: Create the tooltip in chartGroup.
+      // lineChartGroup.call(toolTip);
+  
+      // // Step 3: Create "mouseover" event listener to display tooltip
+      // brands.on("mouseover", function(d) {
+      //   toolTip.show(d);
+      // })
+      // // Step 4: Create "mouseout" event listener to hide tooltip
+      //   .on("mouseout", function(d) {
+      //     toolTip.hide(d);
+      //   });
     }
 
     lineChartGroup.selectAll("path").call(transition);
