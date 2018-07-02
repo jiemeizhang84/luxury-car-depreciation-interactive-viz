@@ -27,3 +27,21 @@ body {
 .bar_chart {
     background-color: white;
 }
+
+.grid{
+    opacity: 0.4;
+    stroke-dasharray: 5 5; 
+}
+
+.tooltip {
+    position: absolute;
+    width: 60px;
+    height: 40px;
+    padding: 10px;
+    font: 12px sans-serif;
+    text-align: center;
+    color: white;
+    background: blue;
+    border: 0;
+    border-radius: 10px;
+  }

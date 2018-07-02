@@ -1,15 +1,4 @@
-var svgWidth = 550;
-var svgHeight = 400;
 
-var margin = {
-  top: 40,
-  right: 40,
-  bottom: 60,
-  left: 50
-};
-
-var width = svgWidth - margin.left - margin.right;
-var height = svgHeight - margin.top - margin.bottom;
 
 // initiate with 2018 car data
 renderLineChart(2018);
@@ -33,6 +22,20 @@ d3.select('#inds')
 
 
 function renderPercentageChart(modelYear) {
+
+  var svgWidth = 650;
+  var svgHeight = 600;
+
+  var margin = {
+    top: 100,
+    right: 40,
+    bottom: 60,
+    left: 60
+  };
+
+  var width = svgWidth - margin.left - margin.right;
+  var height = svgHeight - margin.top - margin.bottom;
+
   var svg = d3.select(".chart")
   .append("svg")
   .attr("width", svgWidth)
@@ -41,7 +44,7 @@ function renderPercentageChart(modelYear) {
   var chartGroup = svg.append("g")
     .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-  d3.csv(`assets/data/car/${modelYear}car.csv`, function(err, carData) {
+  d3.csv(`assets/data/car/${modelYear}.csv`, function(err, carData) {
     if (err) throw err;
     console.log(carData);
     var keys = d3.keys(carData[0]);
@@ -52,7 +55,8 @@ function renderPercentageChart(modelYear) {
     //  Parse Data/Cast as numbers
     carData.forEach(function(data) {
       for (var i=0; i<keys.length; i++) {
-        data[keys[i]] = + data[keys[i]];
+        data[keys[i]] = data[keys[i]]*100;
+        console.log(data[keys[i]]);
       }
     });
   
@@ -62,35 +66,61 @@ function renderPercentageChart(modelYear) {
       .range([0, width]);
   
     var yLinearScale = d3.scaleLinear()
-      .domain([0, 1])
-      .range([height, 0]);
+      .domain([0, 100])
+      .range([0,height]);
   
     // Create axis functions
     var bottomAxis = d3.axisBottom(xLinearScale);
     var leftAxis = d3.axisLeft(yLinearScale);
+
+    // gridlines in y axis function
+    function make_y_gridlines() {		
+      return d3.axisLeft(yLinearScale)
+          .ticks(10)
+    }
+     // add the X gridlines
+    // add the Y gridlines
+    chartGroup.append("g")			
+      .attr("class", "grid")
+      .call(make_y_gridlines()
+          .tickSize(-width)
+          .tickFormat("")
+      )
   
     //  Append Axes to the chart
     chartGroup.append("g")
-      .attr("transform", `translate(0, ${height})`)
+      // .attr("transform", `translate(0, ${height})`)
       .call(bottomAxis)
       .selectAll("text")
       .attr("y", 0)
       .attr("x", 9)
       .attr("dy", ".35em")
-      .attr("transform", "rotate(45)")
+      .attr("transform", "rotate(-45)")
       .style("text-anchor", "start");
+
+    chartGroup.append("g")
+      .attr("transform", "rotate(-90)")
+      .append("text")
+      .attr("class", "axisText")
+      .attr("font-weight", "bold")
+      .attr("font-size", 12)  
+      .attr("y", 0 - margin.left)
+      .attr("x", 0 - height/2-50)
+      .attr("dy", "1em")
+      .text("Depreciation (%)");  
   
     chartGroup.append("g")
-      .call(leftAxis)
+      .call(leftAxis);
+
+    chartGroup.append("g")
+      .attr("transform", `translate(${width / 2}, ${height + 20})`)
       .append("text")
-      .attr("x", 100)
-      .attr("y", -20)
-      .attr("dy", "0.32em")
-      .attr("fill", "#000")
+      .attr("class", "axisText")
+      .attr("x", -25)
+      .attr("y", 20)
       .attr("font-weight", "bold")
       .attr("font-size", 12)
-      .attr("text-anchor", "start")
-      .text(modelYear + " model value depreciation by percentage");
+      .text(modelYear + " Luxury SUV");
   
      // Create car icone
     var carsGroup = chartGroup.selectAll(".cars")
@@ -113,6 +143,8 @@ function renderPercentageChart(modelYear) {
       stackedBar(modelYear,modelName);
     });
 
+    
+
     renderTimeSlider(modelYear,carData,yLinearScale);     
   });
 
@@ -120,6 +152,20 @@ function renderPercentageChart(modelYear) {
 
 
 function stackedBar(modelYear,modelName) {
+
+  var svgWidth = 550;
+  var svgHeight = 500;
+
+  var margin = {
+    top: 60,
+    right: 40,
+    bottom: 60,
+    left: 60
+  };
+
+  var width = svgWidth - margin.left - margin.right;
+  var height = svgHeight - margin.top - margin.bottom;
+
   var barSvg = d3.select(".bar_chart")
   .append("svg")
   .attr("width", svgWidth)
@@ -153,20 +199,22 @@ function stackedBar(modelYear,modelName) {
       y.domain([0, d3.max(data, function(d) { return d.total; })]).nice();
       z.domain(keys);
 
-      barChartGroup.append("g")
+      var barGroup = barChartGroup.append("g")
         .selectAll("g")
         .data(d3.stack().keys(keys)(data))
         .enter().append("g")
-          .attr("fill", function(d) { return z(d.key); })
-        .selectAll("rect")
+          .attr("fill", function(d) { return z(d.key); });
+      var rect = barGroup.selectAll("rect")
         .data(function(d) { return d; })
         .enter().append("rect")
           .attr("x", function(d) { return x(d.data.Year); })
           .attr("y", function(d) { return y(d[1]); })
-          .transition()
-          .delay((d,i)=> i * 50)
+          // .transition()
+          // .delay((d,i)=> i * 50)
           .attr("height", function(d) { return y(d[0]) - y(d[1]); })
           .attr("width", x.bandwidth());
+
+          
 
       barChartGroup.append("g")
           .attr("class", "axis")
@@ -206,11 +254,45 @@ function stackedBar(modelYear,modelName) {
           .attr("y", 9.5)
           .attr("dy", "0.32em")
           .text(function(d) { return d; });
+
+      var toolTip = d3.tip()
+      .attr("class", "tooltip")
+      .offset([10,0])
+      .html(function(d) {
+        console.log(d);
+        return (`<strong>$${d[1]-d[0]}<strong>`);
+      });
+    
+        // Step 2: Create the tooltip in chartGroup.
+      barChartGroup.call(toolTip);
+  
+      // Step 3: Create "mouseover" event listener to display tooltip
+      rect.on("mouseover", function(d) {
+        toolTip.show(d);
+      })
+      // Step 4: Create "mouseout" event listener to hide tooltip
+        .on("mouseout", function(d) {
+          toolTip.hide(d);
+        });
     })
 }
 
 // line chart function
 function renderLineChart(modelYear) {
+
+  var svgWidth = 450;
+  var svgHeight = 600;
+
+  var margin = {
+    top: 30,
+    right: 40,
+    bottom: 40,
+    left: 60
+  };
+
+  var width = svgWidth - margin.left - margin.right;
+  var height = svgHeight - margin.top - margin.bottom;
+
   var lineSvg = d3.select(".line_chart")
   .append("svg")
   .attr("width", svgWidth)
@@ -221,7 +303,7 @@ function renderLineChart(modelYear) {
 
   var parseTime = d3.timeParse("%Y");
 
-  d3.csv(`assets/data/line/${modelYear}car_line.csv`, function(error, carData) {
+  d3.csv(`assets/data/line/${modelYear}_line.csv`, function(error, carData) {
 
     if (error) throw error;
 
@@ -229,12 +311,24 @@ function renderLineChart(modelYear) {
     console.log(keys);
     keys = keys.slice(1);
     console.log(keys);
+
+    var price_max = 0;
+    var price_min = 50000;
   
     //  Parse Data/Cast as numbers
     carData.forEach(function(data) {
       data.Year = parseTime(data.Year);
+      
+
       for (var i=0; i<keys.length; i++) {
         data[keys[i]] = + data[keys[i]];
+        if (data[keys[i]]>price_max) {
+          price_max = data[keys[i]];
+        } else {price_max = price_max;}
+        if (data[keys[i]]<price_min) {
+          price_min = data[keys[i]];
+        } else {price_min = price_min;}
+
       }
     });
   
@@ -244,13 +338,13 @@ function renderLineChart(modelYear) {
 
     var yLinearScale = d3.scaleLinear()
       // .domain([0, d3.max(carData, data => data.BMWX3)])
-      .domain([20000,65000])
+      .domain([price_min,price_max])
       .range([height, 0]);
 
     var bottomAxis = d3.axisBottom(xTimeScale);
     var leftAxis = d3.axisLeft(yLinearScale);
 
-    var lineColors = ["#784a1c", "#007070", "#c70076", "#8f62cc", "#45bdbd", "#e996c8"];
+    var lineColors = ["#784a1c", "#007070", "#c70076", "#8f62cc", "#45bdbd", "#e996c8","#784a1c", "#007070", "#c70076", "#8f62cc", "#45bdbd", "#e996c8","#784a1c", "#007070", "#c70076", "#8f62cc", "#45bdbd", "#e996c8"];
 
     for (var i=0; i<keys.length; i++) {
       var drawLine = d3.line()
@@ -270,7 +364,7 @@ function renderLineChart(modelYear) {
         .enter()
         .append("image")
         .attr("class",data => "carIconeLine Y"+ data.Year.getFullYear() )
-        .attr("xlink:href", `assets/data/${keys[i]}.png`)
+        .attr("xlink:href", `assets/data/imagesModel/${keys[i]}.png`)
         .attr("x", data => xTimeScale(data.Year)-15)
         .attr("y", data => yLinearScale(data[keys[i]])-15)
         .attr("width", "30")
@@ -284,14 +378,25 @@ function renderLineChart(modelYear) {
       .classed("axis", true)
       .call(leftAxis)
       .append("text")
-          .attr("x", 100)
+          .attr("x", 140)
           .attr("y", -20)
           .attr("dy", "0.32em")
           .attr("fill", "#000")
           .attr("font-weight", "bold")
           .attr("font-size", 12)
           .attr("text-anchor", "start")
-          .text(modelYear + " model value depreciation by US dollar");
+          .text(modelYear + " Luxury SUV");
+
+    lineChartGroup.append("g")
+          .attr("transform", "rotate(-90)")
+          .append("text")
+          .attr("class", "axisText")
+          .attr("font-weight", "bold")
+          .attr("font-size", 12)  
+          .attr("y", 0 - margin.left)
+          .attr("x", 0 - height/2-50)
+          .attr("dy", "1em")
+          .text("Price ($)"); 
 
     lineChartGroup.append("g")
       .classed("axis", true)
