@@ -45,7 +45,34 @@ body {
     font: 12px sans-serif;
     text-align: center;
     color: white;
-    background: blue;
+    background: darkblue;
     border: 0;
     border-radius: 10px;
+  }
+
+  .d3-tip {
+    position: absolute;
+    width: 200px;
+    height: auto;
+    padding: 10px;
+    background-color:darkblue;
+    color:whitesmoke;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+    -moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+  }
+
+  .d3-tip.hidden {
+    display: none;
+  }
+
+  .d3-tip p {
+    margin: 0;
+    font-family: Futura;
+    font-size: 16px;
+    line-height: 20px;
   }

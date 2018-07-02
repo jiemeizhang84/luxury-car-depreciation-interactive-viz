@@ -518,12 +518,12 @@ function renderScatter(modelYear){
   var color = d3.scaleOrdinal(["#784a1c", "#007070", "#c70076", "#8f62cc", "#45bdbd", "#e996c8","#7fc97f","#beaed4","#fdc086","#FF6D00","#386cb0","#f0027f","#bf5b17"]);
         
 
-  var tip = d3.tip()
-          .attr("class", "d3-tip")
-          .offset([-10, 0])
-          .html(function(d) {
-          return brand + ": " + d.car + "<br>" + xCar + ": " + d.Hicash + "<br>" + yCar + ": " + d.Hicost;
-          });
+  var tool_tip = d3.tip()
+    .attr("class", "d3-tip")
+    .offset([-8, 0])
+    .html(function(d) {
+    return brand + ": " + d.car + "<br>" + xCar + ": $" + d.cash_price + "<br>" + yCar + ": $" + d.true_cost;
+    });
 
   var x = d3.scaleLinear()          
         .range([0, chartwidth])
@@ -564,7 +564,11 @@ function renderScatter(modelYear){
   var scatter = svg.append("g")
       .attr("id", "scatterplot")
       .attr("clip-path", "url(#clip)");
-  scatter.call(tip)
+    scatter.append("g")
+      .attr("class", "brush")
+      .call(brush);
+
+  scatter.call(tool_tip);
   var xy= scatter.selectAll(".dot")
       .data(carData)
     .enter().append("circle")
@@ -573,8 +577,8 @@ function renderScatter(modelYear){
       .attr("cx", function (d) { return x(d.Hicash); })
       .attr("cy", function (d) { return y(d.Hicost); })
       .style("fill", function(d) { return color(d[colorCar]); })
-      .on("mouseover", function(d) {tip.show(d)})
-      .on("mouseout", function(d) {tip.hide(d)});
+      .on("mouseover", tool_tip.show)
+      .on("mouseout", tool_tip.hide);
 
   // x axis
   svg.append("g")
@@ -633,10 +637,7 @@ function renderScatter(modelYear){
       .style("text-anchor", "end")
       .text("TCTO");
 
-  scatter.append("g")
-      .attr("class", "brush")
-      .call(brush)
-      ;
+  
 
   function brushended() {
 
