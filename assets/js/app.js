@@ -56,7 +56,7 @@ function renderPercentageChart(modelYear) {
     carData.forEach(function(data) {
       for (var i=0; i<keys.length; i++) {
         data[keys[i]] = data[keys[i]]*100;
-        console.log(data[keys[i]]);
+        // console.log(data[keys[i]]);
       }
     });
   
@@ -191,7 +191,10 @@ function stackedBar(modelYear,modelName) {
       return d;
     }, function(error, data) {
       if (error) throw error;
+      // console.log(data.slice(0,5));
+      // var data = cardata.slice(0,5);
 
+      // var keys = cardata.columns.slice(1);
       var keys = data.columns.slice(1);
       console.log(keys);
 
@@ -345,7 +348,7 @@ function renderLineChart(modelYear) {
     var bottomAxis = d3.axisBottom(xTimeScale);
     var leftAxis = d3.axisLeft(yLinearScale);
 
-    var lineColors = ["#784a1c", "#007070", "#c70076", "#8f62cc", "#45bdbd", "#e996c8","#7fc97f","#beaed4","#fdc086","#ffff99","#386cb0","#f0027f","#bf5b17"];
+    var lineColors = ["#784a1c", "#007070", "#c70076", "#8f62cc", "#45bdbd", "#e996c8","#7fc97f","#beaed4","#fdc086","#FF6D00","#386cb0","#f0027f","#bf5b17"];
 
     for (var i=0; i<keys.length; i++) {
       var drawLine = d3.line()
@@ -421,7 +424,7 @@ function renderLineChart(modelYear) {
           .attr("y", 0 - margin.left)
           .attr("x", 0 - height/2-50)
           .attr("dy", "1em")
-          .text("Price ($)"); 
+          .text("Cash Price ($)"); 
 
     lineChartGroup.append("g")
       .classed("axis", true)
@@ -431,6 +434,32 @@ function renderLineChart(modelYear) {
 
     d3.selectAll(`.Y${modelYear}`)
     .style("visibility", "visible");
+
+    var z = d3.scaleOrdinal()
+        .range(lineColors)
+        .domain(keys);
+
+    var legend = lineChartGroup.append("g")
+      .attr("font-family", "sans-serif")
+      .attr("font-size", 10)
+      .attr("text-anchor", "end")
+      .selectAll("g")
+      // .data(keys.slice().reverse())
+      .data(keys.slice())
+      .enter().append("g")
+      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+    
+    legend.append("rect")
+        .attr("x", width - 19)
+        .attr("width", 19)
+        .attr("height", 19)
+        .attr("fill", z);
+  
+    legend.append("text")
+        .attr("x", width - 24)
+        .attr("y", 9.5)
+        .attr("dy", "0.32em")
+        .text(function(d) { return d; });
 
     function transition(path) {
       path.transition()
